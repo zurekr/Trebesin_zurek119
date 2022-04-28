@@ -1,0 +1,211 @@
+\documentclass[12pt,a4paper,notitlepage]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[czech]{babel}
+\usepackage{graphicx}
+\graphicspath{ {images/} }
+
+\begin{document}
+
+\title{Databáze voličů}
+\author{ David Winternitz, Řehoř Žůrek, Lukáš Vejvalka }
+\date{04. 11. 2021}
+\maketitle
+
+\begin{abstract}
+Tento dokument byl vypracovaný společně se všemi členy týmu a ověřuje základní znalosti \LaTeX{}, databází a projektového řízení.
+
+Tým pracoval samostatně a využíval všechny dostupné materiály na Moodle nebo internetu. Veškeré licenční a právní náležitosti jsou upraveny v tomto dokumentu.
+
+Těm, který není tento dokument určen nemají žádné právo na využití obsahu tohoto dokumentu.
+
+Veškerá data osob a předmětů jsou smyšlená a nezakládají se na skutečnosti.
+\end{abstract}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+
+\section{Popis databáze}
+Databáze obsahuje citlivá data o voličích. Zároveň v tabulkách je definice skupin, jímž jsou preference stran.
+
+Databáze je vytvořena na jazyce MySQL a využívá veškeré technologické vlastnosti této DB.
+\newpage
+\section{Licenční informace a HW požadavky}
+\subsection{Licence}
+Microsoft Edge © 2021 Microsoft Corporation. Všechna práva vyhrazena.
+\subsection{Hardware}
+\subsection{Software}
+Microsoft Edge 
+
+PGModeler
+
+LaTeX  editor Overleaf
+\newpage
+\section{Enumerizace hodnot}
+\subsection{Normované enumerizace}
+\subsection{Custom enumerizace}
+\newpage
+\section{Databázová struktura}
+\subsection{ER diagram}
+\includegraphics[width=15cm, height=9cm]{erdiagram_skupinaB.jpg}
+\subsection{Tabulka person}
+zakladni informace o obcanovi
+\subsubsection{Struktura}
+\subsubsection{Provázání tabulky}
+tabulka je provázána se všemi kromě Elections
+\subsection{Tabulka Adress}
+adresa občana
+\subsubsection{Struktura}
+\subsubsection{Provázání tabulky}
+tabulka je provázána s tabulkou person
+\subsection{Tabulka participation}
+\subsubsection{Struktura}
+\subsubsection{Provázání tabulky}
+tabulka je provázána s elections
+\subsection{Tabulka election}
+\subsubsection{Struktura}
+\subsubsection{Provázání tabulky}
+tabulka je provázána s participation
+\subsection{Tabulka countries}
+\subsubsection{Struktura}
+\subsubsection{Provázání tabulky}
+tabulka je provázána s persone
+\subsection{Tabulka religions}
+\subsubsection{Struktura}
+\subsubsection{Provázání tabulky}
+tabulka je provázána s persone
+
+
+\end{document}
+CREATE DATABASE new_database;
+-- ddl-end --
+
+
+-- object: public.person | type: TABLE --
+-- DROP TABLE IF EXISTS public.person CASCADE;
+CREATE TABLE public.person (
+	person_mobile varchar(9),
+	person_email varchar(40),
+	person_political_subject varchar(60),
+	person_birth_number varchar(10) NOT NULL,
+	person_first_name varchar(30),
+	person_last_name varchar(40),
+	person_sex varchar(1),
+	orientation_number_adress varchar(20),
+	number_of_descriptive_adress varchar(10),
+	"country_code_Ref_countries" varchar(10),
+	"religion_code_Ref_Religions" varchar(10),
+	CONSTRAINT person_pk PRIMARY KEY (person_birth_number)
+
+);
+-- ddl-end --
+ALTER TABLE public.person OWNER TO postgres;
+-- ddl-end --
+
+-- object: public.adress | type: TABLE --
+-- DROP TABLE IF EXISTS public.adress CASCADE;
+CREATE TABLE public.adress (
+	street varchar(40),
+	city varchar(40),
+	postal_code varchar(7),
+	floor varchar(3),
+	apartment varchar(20),
+	orientation_number varchar(20) NOT NULL,
+	number_of_descriptive varchar(10) NOT NULL,
+	CONSTRAINT adress_pk PRIMARY KEY (orientation_number,number_of_descriptive)
+
+);
+-- ddl-end --
+ALTER TABLE public.adress OWNER TO postgres;
+-- ddl-end --
+
+-- object: public."Ref_countries" | type: TABLE --
+-- DROP TABLE IF EXISTS public."Ref_countries" CASCADE;
+CREATE TABLE public."Ref_countries" (
+	country_code varchar(10) NOT NULL,
+	country_name varchar(40),
+	CONSTRAINT "Ref_countries_pk" PRIMARY KEY (country_code)
+
+);
+-- ddl-end --
+ALTER TABLE public."Ref_countries" OWNER TO postgres;
+-- ddl-end --
+
+-- object: public."Ref_Religions" | type: TABLE --
+-- DROP TABLE IF EXISTS public."Ref_Religions" CASCADE;
+CREATE TABLE public."Ref_Religions" (
+	religion_code varchar(10) NOT NULL,
+	religion_name varchar(40),
+	CONSTRAINT "Ref_Religions_pk" PRIMARY KEY (religion_code)
+
+);
+-- ddl-end --
+ALTER TABLE public."Ref_Religions" OWNER TO postgres;
+-- ddl-end --
+
+-- object: public."Election_Participation" | type: TABLE --
+-- DROP TABLE IF EXISTS public."Election_Participation" CASCADE;
+CREATE TABLE public."Election_Participation" (
+	election_id varchar(20) NOT NULL,
+	voter_id varchar(20) NOT NULL,
+	date_voted varchar(20),
+	person_birth_number_person varchar(10),
+	"election_id_Elections" varchar(10),
+	CONSTRAINT "Election:Participation_pk" PRIMARY KEY (election_id,voter_id)
+
+);
+-- ddl-end --
+ALTER TABLE public."Election_Participation" OWNER TO postgres;
+-- ddl-end --
+
+-- object: public."Elections" | type: TABLE --
+-- DROP TABLE IF EXISTS public."Elections" CASCADE;
+CREATE TABLE public."Elections" (
+	election_id varchar(10) NOT NULL,
+	election_date varchar(12),
+	election_name varchar(40),
+	other_details varchar(50),
+	CONSTRAINT "Elections_pk" PRIMARY KEY (election_id)
+
+);
+-- ddl-end --
+ALTER TABLE public."Elections" OWNER TO postgres;
+-- ddl-end --
+
+-- object: adress_fk | type: CONSTRAINT --
+-- ALTER TABLE public.person DROP CONSTRAINT IF EXISTS adress_fk CASCADE;
+ALTER TABLE public.person ADD CONSTRAINT adress_fk FOREIGN KEY (orientation_number_adress,number_of_descriptive_adress)
+REFERENCES public.adress (orientation_number,number_of_descriptive) MATCH FULL
+ON DELETE SET NULL ON UPDATE CASCADE;
+-- ddl-end --
+
+-- object: person_fk | type: CONSTRAINT --
+-- ALTER TABLE public."Election_Participation" DROP CONSTRAINT IF EXISTS person_fk CASCADE;
+ALTER TABLE public."Election_Participation" ADD CONSTRAINT person_fk FOREIGN KEY (person_birth_number_person)
+REFERENCES public.person (person_birth_number) MATCH FULL
+ON DELETE SET NULL ON UPDATE CASCADE;
+-- ddl-end --
+
+-- object: "Elections_fk" | type: CONSTRAINT --
+-- ALTER TABLE public."Election_Participation" DROP CONSTRAINT IF EXISTS "Elections_fk" CASCADE;
+ALTER TABLE public."Election_Participation" ADD CONSTRAINT "Elections_fk" FOREIGN KEY ("election_id_Elections")
+REFERENCES public."Elections" (election_id) MATCH FULL
+ON DELETE SET NULL ON UPDATE CASCADE;
+-- ddl-end --
+
+-- object: "Ref_countries_fk" | type: CONSTRAINT --
+-- ALTER TABLE public.person DROP CONSTRAINT IF EXISTS "Ref_countries_fk" CASCADE;
+ALTER TABLE public.person ADD CONSTRAINT "Ref_countries_fk" FOREIGN KEY ("country_code_Ref_countries")
+REFERENCES public."Ref_countries" (country_code) MATCH FULL
+ON DELETE SET NULL ON UPDATE CASCADE;
+-- ddl-end --
+
+-- object: "Ref_Religions_fk" | type: CONSTRAINT --
+-- ALTER TABLE public.person DROP CONSTRAINT IF EXISTS "Ref_Religions_fk" CASCADE;
+ALTER TABLE public.person ADD CONSTRAINT "Ref_Religions_fk" FOREIGN KEY ("religion_code_Ref_Religions")
+REFERENCES public."Ref_Religions" (religion_code) MATCH FULL
+ON DELETE SET NULL ON UPDATE CASCADE;
+-- ddl-end --
